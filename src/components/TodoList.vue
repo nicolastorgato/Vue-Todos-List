@@ -47,6 +47,9 @@
 </template>
 
 <script>
+import axios from 'axios';
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api';
+
 export default {
     name: 'todo-list',
 
@@ -57,21 +60,21 @@ export default {
             beforeEditCache: '',
             filter: 'all',
             todos: [
-                // {
-                //     id: 1,
-                //     title: 'Run errands',
-                //     completed: false,
-                //     editing: false
-                // },
-                // {
-                //     id: 2,
-                //     title: 'Just do it',
-                //     completed: false,
-                //     editing: false
-                // },
+
             ]
             
         }
+    },
+
+    created() {
+      axios.get('/todos')
+            .then(response => {
+              this.todos = response.data;
+            })
+            .catch(error => {
+              console.log(error)
+            });
+
     },
 
 
@@ -116,20 +119,51 @@ export default {
             if (this.newTodo.trim().length == 0) {
                 return
             }
-            this.todos.push({
+
+            let newTodoVar = {
                 id: this.idForTodo,
                 title: this.newTodo,
                 completed: false,
                 editing: false
-            });
+            };
+
+            this.todos.push(newTodoVar);
+
+            axios.post('/todos', {
+              title: newTodoVar.title,
+              completed: false,
+            })
+                .then(response => {
+                  console.log(response);
+                })
+                .catch(error => {
+                  console.log(error)
+                });
 
             this.newTodo = '';
             this.idForTodo++;
+
+
+            
+
         },
 
         editTodo(todo) {
+
             this.beforeEditCache = todo.title;
             todo.editing = true;
+
+            // axios.patch('/todos/' + todo.id, {
+            //   title: todo.title,
+            //   completed: todo.completed,
+            //   })
+            //     .then(response => {
+            //       console.log(response);
+            //     })
+            //     .catch(error => {
+            //       console.log(error)
+            //     });
+
         },
 
         doneEdit(todo) {
@@ -145,6 +179,14 @@ export default {
         },
 
         deleteTodo(index) {
+          axios.delete('/todos/' + (index+1))
+                .then(response => {
+                  console.log(response);
+                })
+                .catch(error => {
+                  console.log(error)
+                });
+
             this.todos.splice(index,1);
         },
 
@@ -153,6 +195,7 @@ export default {
         },
 
         clearCompleted() {
+
             this.todos = this.todos.filter( todo => !todo.completed);
         }
 
